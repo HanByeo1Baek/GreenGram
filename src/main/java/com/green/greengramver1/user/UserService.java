@@ -1,7 +1,9 @@
 package com.green.greengramver1.user;
 
 import com.green.greengramver1.common.MyFileUtils;
-import com.green.greengramver1.user.model.UserInsReq;
+import com.green.greengramver1.user.model.UserSignInReq;
+import com.green.greengramver1.user.model.UserSignInRes;
+import com.green.greengramver1.user.model.UserSignUpReq;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
@@ -17,9 +19,9 @@ public class UserService {
     private final UserMapper mapper;
     private final MyFileUtils myFileUtils;
 
-    public int postSignUp(MultipartFile pic, UserInsReq p) {
+    public int postSignUp(MultipartFile pic, UserSignUpReq p) {
         //프로필 이미지 파일 처리
-        String savedPicName = pic != null ? myFileUtils.makeRandomFileName(pic) : null;
+        String savedPicName = (pic != null ? myFileUtils.makeRandomFileName(pic) : null);
 
         String hashedPassword = BCrypt.hashpw(p.getUpw(), BCrypt.gensalt());
         log.info("hashedPassword: {}", hashedPassword);
@@ -45,4 +47,19 @@ public class UserService {
         return result;
     }
 
+    public UserSignInRes postSignIn(UserSignInReq p){
+        UserSignInRes res = mapper.selUserForSignIn(p);
+        if(res == null){ // 아이디 없음
+            res = new UserSignInRes();
+            res.setMessage("아이디를 확인해 주세요.");
+            return res;
+        }
+        if( !BCrypt.checkpw(p.getUpw(), res.getUpw())){ // 비밀번호가 다를시
+            res = new UserSignInRes();
+            res.setMessage("비밀번호를 확인해 주세요.");
+            return res;
+        }
+        res.setMessage("로그인 성공");
+        return res;
+    }
 }
