@@ -12,4 +12,33 @@
         set feed_id = #{feedId}
         , pic = #{pic}
     </insert>
+    <!--
+        (사진은 무시하세요), feed_pics 테이블은 무시
+
+        feed_id, 작성자userid값, 작성자닉네임, 작성자id, 작성자프로필사진파일명, contents, location, created_at
+        정렬은 최신글이 가장 위에 오도록
+        페이징 처리
+        값을 가져오는 퀴리문 작성
+    -->
+    <select id="selFeedList">
+        SELECT feed_id AS feedId,
+        writer_user_id AS writerId,
+        if(C.nick_name IS NULL, C.uid, C.nick_name) AS writerNm,
+        C.pic AS writerPic,
+        content, location,
+        A.created_at AS createdAt
+        from feed A
+        JOIN user C
+        ON A.writer_user_id = C.user_id
+        order BY feed_id DESC
+        LIMIT #{startIdx}, #{size};
+    </select>
+
+    <!-- ///////////////////////// feed_pics///////////////////////// -->
+
+    <select id="selFeedPicList">
+        SELECT pic
+        from feed_pics
+        where feed_id = #{feedId}
+    </select>
 </mapper>
